@@ -2,21 +2,15 @@
 using Discord;
 using Discord.Audio;
 using Discord.Commands;
+using ImageProcessor;
+using ImageProcessor.Imaging.Filters.Photo;
 using System;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.IO;
+using System.Net;
 using System.Threading.Tasks;
 using YoutubeExplode;
 using YoutubeExplode.Videos.Streams;
-using Discord.Addons.Interactive;
-using System.Collections.Generic;
-using NiL.JS.Expressions;
-using ImageProcessor;
-using ImageProcessor.Imaging.Filters.Photo;
-using System.Net;
-using Genius.Core;
-using LyricsFinder.SourcePrivoder;
-using LyricsFinder.SourcePrivoder.Xiami;
 
 namespace Mika_Bot.Modules
 {
@@ -112,7 +106,7 @@ namespace Mika_Bot.Modules
             embedBuilder.Color = new Color(255, 0, 0);
             var author = new EmbedAuthorBuilder();
             author.WithName("Mika");
-            author.WithIconUrl(Context.Guild.GetUser(mikaUID).GetAvatarUrl());
+            author.WithIconUrl(Context.Client.GetUser(mikaUID).GetAvatarUrl());
             embedBuilder.Author = author;
             embedBuilder.ThumbnailUrl = Context.Client.CurrentUser.GetAvatarUrl();
 
@@ -365,6 +359,8 @@ namespace Mika_Bot.Modules
                 .WithStandardOutputPipe(PipeTarget.ToStream(memoryStream))
                 .ExecuteAsync();
 #pragma warning restore CS4014 // Da auf diesen Aufruf nicht gewartet wird, wird die Ausführung der aktuellen Methode vor Abschluss des Aufrufs fortgesetzt.
+
+            await Task.Delay(500);
 
             var videos = youtube.Search.GetVideosAsync(parameter);
             string[] currentSong = new string[3];
