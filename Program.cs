@@ -39,7 +39,7 @@ namespace Mika_Bot
                 .AddSingleton<InteractiveService>()
                 .BuildServiceProvider();
 
-            string token = "NzA4MzE5ODQ1NjYxNTQwNDAz.XrVoZw.hu6JIhKZhprh6B-TNuk9q--LEDY";
+            string token = Environment.GetEnvironmentVariable("DISCORD_API_TOKEN", EnvironmentVariableTarget.User);
 
             _client.Log += _client_Log;
 

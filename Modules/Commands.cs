@@ -189,10 +189,10 @@ namespace Mika_Bot.Modules
 
             using (WebClient client = new WebClient())
             {
-                client.DownloadFile(new Uri(url), @$"C:\Users\MIKAIL\source\repos\Mika Bot\assets\{user.AvatarId}.png");
+                client.DownloadFile(new Uri(url), Path.GetFullPath(@$"assets\{user.AvatarId}.png"));  
             }
 
-            iF.Load(@$"C:\Users\MIKAIL\source\repos\Mika Bot\assets\{user.AvatarId}.png");
+            iF.Load(@$"assets\{user.AvatarId}.png");
 
             switch (arg)
             {
@@ -212,11 +212,11 @@ namespace Mika_Bot.Modules
                     return;
             }
             
-            iF.Save(@"C:\Users\MIKAIL\source\repos\Mika Bot\assets\avatar.png");
+            iF.Save(Path.GetFullPath(@$"assets\avatar.png"));
 
-            await Context.Channel.SendFileAsync(@"C:\Users\MIKAIL\source\repos\Mika Bot\assets\avatar.png");
-            File.Delete(@"C:\Users\MIKAIL\source\repos\Mika Bot\assets\avatar.png");
-            File.Delete(@$"C:\Users\MIKAIL\source\repos\Mika Bot\assets\{user.AvatarId}.png");
+            await Context.Channel.SendFileAsync(Path.GetFullPath(@$"assets\avatar.png"));
+            File.Delete(Path.GetFullPath(@$"assets\avatar.png"));
+            File.Delete(Path.GetFullPath(@$"assets\{user.AvatarId}.png"));
         }
 
         [Command("loop")]
