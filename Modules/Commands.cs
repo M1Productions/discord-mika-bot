@@ -7,6 +7,7 @@ using ImageProcessor.Imaging.Filters.Photo;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Net;
 using System.Threading.Tasks;
@@ -24,6 +25,29 @@ namespace Mika_Bot.Modules
         }
 
         private ulong mikaUID = 452415473687068672;
+
+        private Process CreateStream(string path)
+        {
+            return Process.Start(new ProcessStartInfo
+            {
+                FileName = "ffmpeg",
+                Arguments = $"-hide_banner -loglevel panic -i \"{path}\" -ac 2 -f s16le -ar 48000 pipe:1",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+            });
+        }
+        
+        private async Task SendAsync(IAudioClient client, string path)
+        {
+            // Create FFmpeg using the previous example
+            using (var ffmpeg = CreateStream(path))
+            using (var output = ffmpeg.StandardOutput.BaseStream)
+            using (var discord = client.CreatePCMStream(AudioApplication.Mixed))
+            {
+                try { await output.CopyToAsync(discord); }
+                finally { await discord.FlushAsync(); }
+            }
+        }
 
         [Command("search")]
         [Summary("Suche nach deinem Lieblingssong auf YouTube.")]
@@ -169,7 +193,17 @@ namespace Mika_Bot.Modules
         {
             if (Context.User.Id == mikaUID)
             {
-                await ReplyAsync("Beim nächsten mal will ich dich nicht enttäuschen!");
+                EmbedBuilder embedBuilder = new EmbedBuilder();
+                embedBuilder.AddField("(×﹏×)", "Bom Bom Bakudan!");
+                embedBuilder.ImageUrl = "https://cdn.discordapp.com/attachments/870777345512984628/980562660217221220/klee_dodoco_and_jumpy_dumpty_genshin_impact_drawn_by_ran_system__ef1c7c74f7498fbf816db5bf20cbddf8-removebg-preview.png";
+                await ReplyAsync(embed: embedBuilder.Build());
+
+                if (Context.Guild.CurrentUser.VoiceChannel != null)
+                {
+                    SendAsync(Context.Guild.AudioClient, Path.GetFullPath(@"assets\bom-bom-bakudan-explosion1.mp3"));
+                    await Task.Delay(2000);
+                }
+
                 await Context.Client.StopAsync();
                 Environment.Exit(0);
             }
