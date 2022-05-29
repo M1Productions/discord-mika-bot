@@ -5,6 +5,7 @@ using Discord.Commands;
 using ImageProcessor;
 using ImageProcessor.Imaging.Filters.Photo;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
@@ -74,38 +75,60 @@ namespace Mika_Bot.Modules
 
         [Command("help")]
         [Summary("Drei mal darfst du raten, was dieser Befehl macht.")]
-        public async Task Help()
+        public async Task Help(string arg = null)
         {
             var commands = _commandService.Commands;
-            EmbedBuilder embedBuilder = new EmbedBuilder(); 
+            EmbedBuilder embedBuilder = new EmbedBuilder();
+
+            Hashtable commandList = new Hashtable();
 
             foreach (CommandInfo command in commands)
             {
-                string embedFieldText = command.Summary ?? "Keine Beschreibung bisher\n";
-
-                if (command.Aliases.Count < 2)
-                {
-                    embedBuilder.AddField(command.Name, embedFieldText);
-                }
-                else
-                {
-                    string title = "";
-
-                    foreach (var alias in command.Aliases)
-                    {
-                        title += alias + ", ";
-                    }
-
-                    title = title.Remove(title.Length - 2, 2);
-
-                    embedBuilder.AddField(title, embedFieldText);
-                }
+                commandList.Add(command.Name, command.Summary);
             }
 
-            embedBuilder.Title = "Alle Befehle";
+            if (arg == null)
+            {
+                string valueText = "";
+
+                foreach (CommandInfo command in commands)
+                {
+
+                    if (command.Aliases.Count < 2)
+                    {
+                        valueText += command.Name + "\n";
+                    }
+                    else
+                    {
+                        string title = "";
+
+                        foreach (var alias in command.Aliases)
+                        {
+                            title += alias + ", ";
+                        }
+
+                        title = title.Remove(title.Length - 2, 2);
+
+                        valueText += title + "\n";
+                    }
+                }
+
+                embedBuilder.AddField("Alle Befehle", valueText);
+                embedBuilder.Description = "Du kannst 'mika help {Befehl}' eingeben, um mehr darüber herauszufinden.";
+            }
+            else if (commandList.ContainsKey(arg))
+            {
+                embedBuilder.AddField(arg, (string)commandList[arg]);
+            }
+            else
+            {
+                embedBuilder.AddField("What?", $"Es gibt keinen Befehl, der '{arg}' heißt.");
+                embedBuilder.ImageUrl = "https://cdn.discordapp.com/attachments/870777345512984628/980558844990201876/flat_750x_075_f-pad_750x1000_f8f8f8-removebg.png";
+            }
+
             embedBuilder.Color = new Color(255, 0, 0);
             var author = new EmbedAuthorBuilder();
-            author.WithName("Mika");
+            author.WithName("By Mika");
             author.WithIconUrl(Context.Client.GetUser(mikaUID).GetAvatarUrl());
             embedBuilder.Author = author;
             embedBuilder.ThumbnailUrl = Context.Client.CurrentUser.GetAvatarUrl();
@@ -315,6 +338,8 @@ namespace Mika_Bot.Modules
             if (channel == null)
             {
                 await Join();
+
+                if (Context.Guild.CurrentUser.VoiceChannel == null) return;
             }
 
             if (parameter == "1" || parameter == "2" || parameter == "3" || parameter == "4" || parameter == "5")
