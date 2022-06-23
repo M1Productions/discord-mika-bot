@@ -24,7 +24,7 @@ namespace Mika_Bot.Modules
             _commandService = commandService;
         }
 
-        private ulong mikaUID = 452415473687068672;
+        private ulong botAuthorID = 452415473687068672;
 
         private Process CreateStream(string path)
         {
@@ -36,7 +36,7 @@ namespace Mika_Bot.Modules
                 RedirectStandardOutput = true,
             });
         }
-        
+
         private async Task SendAsync(IAudioClient client, string path)
         {
             // Create FFmpeg using the previous example
@@ -51,7 +51,7 @@ namespace Mika_Bot.Modules
 
         [Command("search")]
         [Summary("Suche nach deinem Lieblingssong auf YouTube.")]
-        public async Task YouTubeSearch([Remainder]string query)
+        public async Task YouTubeSearch([Remainder] string query)
         {
             var youtube = new YoutubeClient();
             var videos = youtube.Search.GetVideosAsync(query);
@@ -72,8 +72,8 @@ namespace Mika_Bot.Modules
                 resultArray[i, 0] = video.Title;
                 resultArray[i, 1] = video.Url;
 
-                embedBuilder.AddField((i+1) + ". " + video.Title, video.Url);
-                
+                embedBuilder.AddField((i + 1) + ". " + video.Title, video.Url);
+
                 /*foreach (var t in video.Thumbnails)
                 {
                     resultArray[i, 2] = t.Url;
@@ -84,7 +84,7 @@ namespace Mika_Bot.Modules
 
                 i++;
             }
-            
+
             await ReplyAsync(embed: embedBuilder.Build());
 
             Program.searchResults[Context.Guild.Id] = resultArray;
@@ -142,7 +142,15 @@ namespace Mika_Bot.Modules
             }
             else if (commandList.ContainsKey(arg))
             {
-                embedBuilder.AddField(arg, (string)commandList[arg]);
+                if ((string)commandList[arg] != null)
+                {
+                    embedBuilder.AddField(arg, (string)commandList[arg]);
+                }
+                else
+                {
+                    embedBuilder.AddField(arg, "Es gibt (noch) keine Beschreibung für diesen Befehl.");
+                    embedBuilder.ImageUrl = "https://cdn.discordapp.com/attachments/870777345512984628/980558844990201876/flat_750x_075_f-pad_750x1000_f8f8f8-removebg.png";
+                }
             }
             else
             {
@@ -153,7 +161,7 @@ namespace Mika_Bot.Modules
             embedBuilder.Color = new Color(255, 0, 0);
             var author = new EmbedAuthorBuilder();
             author.WithName("By Mika");
-            author.WithIconUrl(Context.Client.GetUser(mikaUID).GetAvatarUrl());
+            author.WithIconUrl(Context.Client.GetUser(botAuthorID).GetAvatarUrl());
             embedBuilder.Author = author;
             embedBuilder.ThumbnailUrl = Context.Client.CurrentUser.GetAvatarUrl();
 
@@ -191,7 +199,7 @@ namespace Mika_Bot.Modules
         [Summary("(×﹏×)")]
         public async Task Suicide()
         {
-            if (Context.User.Id == mikaUID)
+            if (Context.User.Id == botAuthorID)
             {
                 EmbedBuilder embedBuilder = new EmbedBuilder();
                 embedBuilder.AddField("(×﹏×)", "Bom Bom Bakudan!");
@@ -209,7 +217,11 @@ namespace Mika_Bot.Modules
             }
             else
             {
-                await ReplyAsync("Nur Mika-Sama kann mir diesen Befehl geben!");
+                EmbedBuilder embedBuilder = new EmbedBuilder();
+                embedBuilder.AddField("Sorry, aber...", "Du bist nicht Mika-Sama.");
+                embedBuilder.ImageUrl = "https://cdn.discordapp.com/attachments/870777345512984628/980577816603152384/unknown.png";
+
+                await ReplyAsync(embed: embedBuilder.Build());
             }
         }
 
@@ -218,8 +230,17 @@ namespace Mika_Bot.Modules
                  "Bisher gibt es invert, comic, und neutral, falls du einfach dein" +
                  " geiles Profilbild in groß sehen willst :)\n" +
                  "Wenn du jemanden dabei pingst, kannst du das mit seinem Profilbild machen.")]
-        public async Task Filter(string arg, [Remainder]string args = null)
+        public async Task Filter(string arg, [Remainder] string args = null)
         {
+            List<string> optList = new List<string>()
+            {
+                "invert",
+                "comic",
+                "neutral"
+            }; 
+
+            if (!optList.Contains(arg)) { await ReplyAsync("Den Filter kenne ich nicht!"); return;  }
+
             ImageFactory iF = new ImageFactory();
 
             Discord.WebSocket.SocketUser user = Context.Message.Author;
@@ -240,7 +261,7 @@ namespace Mika_Bot.Modules
 
             using (WebClient client = new WebClient())
             {
-                client.DownloadFile(new Uri(url), Path.GetFullPath(@$"assets\{user.AvatarId}.png"));  
+                client.DownloadFile(new Uri(url), Path.GetFullPath(@$"assets\{user.AvatarId}.png"));
             }
 
             iF.Load(@$"assets\{user.AvatarId}.png");
@@ -262,7 +283,7 @@ namespace Mika_Bot.Modules
                     await ReplyAsync($"Kein Plan was du mit '{arg}' meinst.");
                     return;
             }
-            
+
             iF.Save(Path.GetFullPath(@$"assets\avatar.png"));
 
             await Context.Channel.SendFileAsync(Path.GetFullPath(@$"assets\avatar.png"));
@@ -338,6 +359,29 @@ namespace Mika_Bot.Modules
             
         }
         */
+
+        [Command("brazil", RunMode = RunMode.Async)]
+        public async Task Brazil([Remainder] string arg)
+        {
+            EmbedBuilder embedBuilder = new EmbedBuilder();
+            embedBuilder.AddField("୧((#Φ益Φ#))୨", "AB NACH BRASILIEN!");
+            embedBuilder.ImageUrl = "https://cdn.discordapp.com/attachments/870777345512984628/989630129493905549/unknown.png";
+            await ReplyAsync(embed: embedBuilder.Build());
+
+            if (Context.Guild.CurrentUser.VoiceChannel != null)
+            {
+                SendAsync(Context.Guild.AudioClient, Path.GetFullPath(@"assets\mordekaiser_ult.mp3"));
+                await Task.Delay(800);
+            }
+
+            foreach (var u in Context.Message.MentionedUsers)
+            {
+                var gu = Context.Guild.GetUser(u.Id);
+
+                gu.ModifyAsync(gu => gu.Channel = Context.Guild.GetVoiceChannel(952269986267795476));
+            }
+        }
+
         [Command("nowplaying")]
         [Alias("np")]
         [Summary("Frag mich nach dem aktuellen Song.")]
@@ -357,6 +401,7 @@ namespace Mika_Bot.Modules
             {
                 embedBuilder.AddField(currentSong[0], currentSong[1]);
                 embedBuilder.ImageUrl = currentSong[2];
+                embedBuilder.Title = "Gerade spielt:";
                 await ReplyAsync(embed: embedBuilder.Build());
             }
         }
@@ -419,7 +464,8 @@ namespace Mika_Bot.Modules
                 .ExecuteAsync();
 #pragma warning restore CS4014 // Da auf diesen Aufruf nicht gewartet wird, wird die Ausführung der aktuellen Methode vor Abschluss des Aufrufs fortgesetzt.
 
-            await Task.Delay(500);
+            await Task.Delay(1000);
+            //await ReplyAsync($"{memoryStream.Length}");
 
             var videos = youtube.Search.GetVideosAsync(parameter);
             string[] currentSong = new string[3];
@@ -428,7 +474,7 @@ namespace Mika_Bot.Modules
             {
                 currentSong[0] = video.Title;
                 currentSong[1] = video.Url;
-                
+
                 foreach (var t in video.Thumbnails)
                 {
                     currentSong[2] = t.Url;
@@ -457,8 +503,8 @@ namespace Mika_Bot.Modules
                     await ReplyAsync(exc.Message + "\n\n" + exc.StackTrace);
                     return;
                 }
-                finally 
-                { 
+                finally
+                {
                     await discord.FlushAsync();
                     Program.streams[Context.Guild.Id] = null;
                     Program.currentSong[Context.Guild.Id] = null;
@@ -470,9 +516,9 @@ namespace Mika_Bot.Modules
 
                     var queue = (List<string[]>)Program.queue[Context.Guild.Id];
 
-                    if (loopEnabled) 
-                    
-                    { 
+                    if (loopEnabled)
+
+                    {
                         Play(parameter);
                     }
                     else if (queue != null && queue.Count > 0)
@@ -488,7 +534,7 @@ namespace Mika_Bot.Modules
                  "Schreib einfach nur 'mika queue' um dir die aktuelle Queue anzusehen " +
                  "oder gib eine URL bzw. 1 - 5 an, falls du davor 'mika search' benutzt haben solltest, " +
                  "um einen Song der Queue hinzuzufügen.")]
-        public async Task Queue([Remainder]string query = null)
+        public async Task Queue([Remainder] string query = null)
         {
             if (query == null)
             {
@@ -508,7 +554,7 @@ namespace Mika_Bot.Modules
 
                 foreach (string[] element in elements)
                 {
-                    embedBuilder.AddField(i + ". " + element[0], element[1]);  
+                    embedBuilder.AddField(i + ". " + element[0], element[1]);
                     i++;
                 }
 
